@@ -31,6 +31,14 @@ def get_db():
 
 
 # MENU
+@api_router.get("/menus/{menu_id}/details", response_model=schemas.MenuDetails)
+def read_menu_details(menu_id: UUID, db: Session = Depends(get_db)):
+    menu_details = crud.get_menu_with_counts(db, menu_id)
+    if menu_details is None:
+        raise HTTPException(status_code=404, detail="Menu not found")
+    return menu_details
+
+
 @api_router.get("/menus/{menu_id}", response_model=schemas.Menu)
 def read_menu(menu_id: UUID, db: Session = Depends(get_db)):
     """
@@ -122,6 +130,7 @@ def delete_menu(menu_id: UUID, db: Session = Depends(get_db)):
     if not crud.delete_menu(db=db, menu_id=menu_id):
         raise HTTPException(status_code=404, detail="menu not found")
     return {"message": "Menu deleted"}
+
 
 
 # SUBMENU

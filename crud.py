@@ -139,6 +139,43 @@ def delete_menu(db: Session, menu_id: UUID):
     return False
 
 
+def get_menu_with_counts(db: Session, menu_id: UUID):
+    """
+    Получение информации о конкретном меню с подсчетом количества подменю и блюд.
+
+    Args:
+    db (Session): Сессия базы данных.
+    menu_id (UUID): Уникальный идентификатор меню.
+
+    Returns:
+    dict: Словарь с данными меню или None, если меню не найдено.
+    """
+    menu_with_counts = (
+        db.query(
+            models.Menu,
+            func.count(distinct(models.SubMenu.id)).label("submenus_count"),
+            func.count(models.Dish.id).label("dishes_count")
+        )
+        .outerjoin(models.SubMenu, models.Menu.id == models.SubMenu.menu_id)
+        .outerjoin(models.Dish, models.SubMenu.id == models.Dish.submenu_id)
+        .filter(models.Menu.id == menu_id)
+        .group_by(models.Menu.id)
+        .first()
+    )
+
+    if menu_with_counts:
+        menu, submenus_count, dishes_count = menu_with_counts
+        return {
+            "id": menu.id,
+            "title": menu.title,
+            "description": menu.description,
+            "submenus_count": submenus_count,
+            "dishes_count": dishes_count
+        }
+    else:
+        return None
+
+
 # CRUD FOR SUBMENU
 def get_specific_submenu(db: Session, menu_id: UUID, submenu_id: UUID):
     """

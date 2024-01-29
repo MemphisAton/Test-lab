@@ -17,6 +17,14 @@ class MenuCreate(BaseModel):
     description: str
 
 
+class MenuDetails(BaseModel):
+    id: UUID
+    title: str
+    description: str
+    submenus_count: int
+    dishes_count: int
+
+
 class MenuUpdate(BaseModel):
     title: str
     description: str

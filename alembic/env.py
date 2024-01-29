@@ -4,9 +4,13 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
+
+from config import load_config
+config_url = load_config('.env')
+SQLALCHEMY_DATABASE_URL = config_url.db.DATABASE_URL
 from sqlalchemy.ext.declarative import declarative_base
 from models import Base  # Импортируйте вашу базовую модель из models.py
-SQLALCHEMY_DATABASE_URL = "postgresql://postgres:123@localhost/ylab"  # Импортируйте вашу строку подключения к базе данных
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
