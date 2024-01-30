@@ -1,6 +1,5 @@
 from fastapi.testclient import TestClient
 
-#from conftest import db_session
 from main import app
 from models import Menu, SubMenu
 
