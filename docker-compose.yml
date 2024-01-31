@@ -2,43 +2,102 @@ version: '3.8'
 
 services:
   api:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.app
     ports:
       - "8000:8000"
     depends_on:
-      db:
-        condition: service_healthy
+      - db
     environment:
       - IN_DOCKER=1
-      - DOCKER_DATABASE_URL=postgresql://postgres:123@db:5432/ylab
+      - DATABASE_URL=postgresql://postgres:123@db:5432/ylab
+
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    ports:
+      - "8001:8000"
+    depends_on:
+      - db-test
+    environment:
+      - IN_DOCKER=1
+      - RUNNING_TESTS=1
+      - DATABASE_URL=postgresql://postgres:123@db-test:5432/ylab_test
 
   db:
     image: postgres:15.1-alpine
-    ports:
-      - "5432:5432"
     environment:
       POSTGRES_DB: ylab
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 123
+    ports:
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 5s
 
-  test-service:
-    build: .
-    depends_on:
-      api:
-        condition: service_started
-      db:
-        condition: service_healthy
+  db-test:
+    image: postgres:15.1-alpine
     environment:
-      - IN_DOCKER=1
-      - DATABASE_URL=postgresql://postgres:123@db:5432/ylab
+      POSTGRES_DB: ylab_test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
 
 volumes:
   postgres_data:
+  postgres_test_data:
+
+
+#version: '3.8'
+#
+#services:
+#  api:
+#    build: .
+#    ports:
+#      - "8000:8000"
+#    depends_on:
+#      db:
+#        condition: service_healthy
+#    environment:
+#      - IN_DOCKER=1
+#      - DOCKER_DATABASE_URL=postgresql://postgres:123@db:5432/ylab
+#
+#  db:
+#    image: postgres:15.1-alpine
+#    ports:
+#      - "5432:5432"
+#    environment:
+#      POSTGRES_DB: ylab
+#      POSTGRES_USER: postgres
+#      POSTGRES_PASSWORD: 123
+#    volumes:
+#      - postgres_data:/var/lib/postgresql/data
+#    healthcheck:
+#      test: ["CMD-SHELL", "pg_isready -U postgres"]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 5
+#      start_period: 5s
+#
+#  test-service:
+#    build: .
+#    depends_on:
+#      api:
+#        condition: service_started
+#      db:
+#        condition: service_healthy
+#    environment:
+#      - IN_DOCKER=1
+#      - DATABASE_URL=postgresql://postgres:123@db:5432/ylab
+#
+#volumes:
+#  postgres_data:
